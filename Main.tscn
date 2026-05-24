@@ -1,0 +1,196 @@
+[gd_scene load_steps=4 format=3 uid="uid://of5xku858sxi"]
+
+[ext_resource type="PackedScene" uid="uid://dtk37ndggbqoo" path="res://Tile.tscn" id="1_glv2v"]
+[ext_resource type="Script" uid="uid://bthl73ood54xg" path="res://TileManager.cs" id="2_uu6xs"]
+[ext_resource type="ButtonGroup" uid="uid://fym4fxr2fukq" path="res://tile button group.tres" id="3_r0du0"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.100967, 0.100769, 0.206451, 1)
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 35.0
+offset_right = -348.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+ratio = 2.0
+metadata/_edit_group_ = true
+
+[node name="Base background" type="ColorRect" parent="AspectRatioContainer"]
+custom_minimum_size = Vector2(0, 512)
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Background Tile" type="TextureRect" parent="AspectRatioContainer"]
+custom_minimum_size = Vector2(512, 512)
+layout_mode = 2
+expand_mode = 1
+
+[node name="Layout 2 tiles" type="HBoxContainer" parent="AspectRatioContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Tile" parent="AspectRatioContainer/Layout 2 tiles" instance=ExtResource("1_glv2v")]
+layout_mode = 2
+
+[node name="Tile2" parent="AspectRatioContainer/Layout 2 tiles" instance=ExtResource("1_glv2v")]
+layout_mode = 2
+
+[node name="Layout 4 tiles" type="GridContainer" parent="AspectRatioContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 2
+
+[node name="Tile" parent="AspectRatioContainer/Layout 4 tiles" instance=ExtResource("1_glv2v")]
+layout_mode = 2
+
+[node name="Tile2" parent="AspectRatioContainer/Layout 4 tiles" instance=ExtResource("1_glv2v")]
+layout_mode = 2
+
+[node name="Tile3" parent="AspectRatioContainer/Layout 4 tiles" instance=ExtResource("1_glv2v")]
+layout_mode = 2
+
+[node name="Tile4" parent="AspectRatioContainer/Layout 4 tiles" instance=ExtResource("1_glv2v")]
+layout_mode = 2
+
+[node name="Actions" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -294.0
+offset_top = 28.0
+offset_right = -25.0
+offset_bottom = -19.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="Control3" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Actions/Control3"]
+layout_mode = 0
+offset_left = 74.0
+offset_right = 163.0
+offset_bottom = 23.0
+text = "Zoom level:"
+
+[node name="Label2" type="Label" parent="Actions/Control3"]
+layout_mode = 0
+offset_left = 162.0
+offset_right = 186.0
+offset_bottom = 23.0
+text = "0"
+horizontal_alignment = 2
+
+[node name="Zoom in" type="Button" parent="Actions"]
+layout_mode = 2
+text = "Zoom in"
+
+[node name="Zoom out" type="Button" parent="Actions"]
+layout_mode = 2
+text = "Zoom out"
+
+[node name="Button" type="Button" parent="Actions"]
+layout_mode = 2
+text = "Reset zoom"
+
+[node name="Control" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="Download selected" type="Button" parent="Actions"]
+layout_mode = 2
+text = "Download selected"
+
+[node name="Control2" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Download multiple levels" type="Button" parent="Actions"]
+layout_mode = 2
+text = "Download zoom levels"
+
+[node name="Control4" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Bulk download slider" type="HSlider" parent="Actions"]
+layout_mode = 2
+min_value = 1.0
+max_value = 5.0
+value = 1.0
+tick_count = 5
+ticks_on_borders = true
+
+[node name="Help" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -291.0
+offset_top = -241.0
+offset_right = -30.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ColorRect" type="ColorRect" parent="Help"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.368627)
+
+[node name="Label" type="Label" parent="Help"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 13.0
+offset_top = 13.0
+offset_right = -9.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "TBD"
+autowrap_mode = 2
+
+[node name="Data" type="Node" parent="."]
+
+[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("layout2", "layout4", "tileBackground")]
+script = ExtResource("2_uu6xs")
+layout2 = NodePath("../../AspectRatioContainer/Layout 2 tiles")
+layout4 = NodePath("../../AspectRatioContainer/Layout 4 tiles")
+tileBackground = NodePath("../../AspectRatioContainer/Background Tile")
+group = ExtResource("3_r0du0")
+
+[connection signal="value_changed" from="Actions/Bulk download slider" to="Data/Tile Manager" method="SetDownloadRecZoom"]

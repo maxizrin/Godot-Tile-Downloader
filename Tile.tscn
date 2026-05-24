@@ -1,0 +1,88 @@
+[gd_scene load_steps=6 format=3 uid="uid://dtk37ndggbqoo"]
+
+[ext_resource type="ButtonGroup" uid="uid://fym4fxr2fukq" path="res://tile button group.tres" id="1_j13wd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j13wd"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.576748, 0.753012, 0.835417, 0.435294)
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w5qwt"]
+bg_color = Color(0.624467, 0.628246, 0, 1)
+draw_center = false
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.8, 0.8, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j13wd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w5qwt"]
+
+[node name="ColorRect" type="AspectRatioContainer"]
+custom_minimum_size = Vector2(256, 256)
+size_flags_horizontal = 3
+stretch_mode = 1
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 2
+
+[node name="Outline" type="Panel" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_j13wd")
+
+[node name="Selection outline" type="Panel" parent="."]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_w5qwt")
+
+[node name="Data display" type="Control" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 73.0
+offset_bottom = 46.0
+theme_override_constants/line_spacing = -8
+text = "X: 99999
+y: 99999"
+
+[node name="Hide UI Control" type="Control" parent="."]
+layout_mode = 2
+
+[node name="Selection Button" type="Button" parent="Hide UI Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_j13wd")
+toggle_mode = true
+button_group = ExtResource("1_j13wd")
+flat = true
+
+[node name="Hide UI" type="CheckButton" parent="Hide UI Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -50.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = 30.0
+grow_horizontal = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_w5qwt")
+button_pressed = true
+
+[connection signal="toggled" from="Hide UI Control/Selection Button" to="Selection outline" method="set_visible"]
+[connection signal="toggled" from="Hide UI Control/Hide UI" to="Data display" method="set_visible"]
