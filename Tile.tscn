@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://dtk37ndggbqoo"]
+[gd_scene load_steps=7 format=3 uid="uid://dtk37ndggbqoo"]
 
 [ext_resource type="ButtonGroup" uid="uid://fym4fxr2fukq" path="res://tile button group.tres" id="1_j13wd"]
+[ext_resource type="Script" uid="uid://cs8okaunyllo4" path="res://Tile.cs" id="2_je3b2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j13wd"]
 draw_center = false
@@ -48,18 +49,74 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Data display"]
 layout_mode = 1
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 73.0
-offset_bottom = 46.0
+offset_left = 105.0
+offset_top = 208.0
+offset_right = 120.0
+offset_bottom = 246.0
 theme_override_constants/line_spacing = -8
-text = "X: 99999
-y: 99999"
+text = "X:
+y:"
+
+[node name="x tile coord" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 123.0
+offset_top = 208.0
+offset_right = 160.0
+offset_bottom = 231.0
+theme_override_constants/line_spacing = -8
+text = "9999"
+
+[node name="y tile coord" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 123.0
+offset_top = 224.0
+offset_right = 160.0
+offset_bottom = 247.0
+theme_override_constants/line_spacing = -8
+text = "9999"
+
+[node name="Label2" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 11.0
+offset_top = 106.0
+offset_right = 36.0
+offset_bottom = 123.0
+theme_override_constants/line_spacing = -8
+theme_override_font_sizes/font_size = 12
+text = "Lon:"
+
+[node name="longitude" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 10.0
+offset_top = 118.0
+offset_right = 47.0
+offset_bottom = 141.0
+theme_override_constants/line_spacing = -8
+text = "9999"
+
+[node name="Label3" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 109.0
+offset_top = 3.0
+offset_right = 131.0
+offset_bottom = 20.0
+theme_override_constants/line_spacing = -8
+theme_override_font_sizes/font_size = 12
+text = "Lat:"
+
+[node name="latitude" type="Label" parent="Data display"]
+layout_mode = 1
+offset_left = 109.0
+offset_top = 15.0
+offset_right = 146.0
+offset_bottom = 38.0
+theme_override_constants/line_spacing = -8
+text = "9999"
 
 [node name="Hide UI Control" type="Control" parent="."]
 layout_mode = 2
 
-[node name="Selection Button" type="Button" parent="Hide UI Control"]
+[node name="Selection Button" type="Button" parent="Hide UI Control" node_paths=PackedStringArray("xCoord", "yCoord", "lat", "lon", "texture")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -70,6 +127,12 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_j13wd")
 toggle_mode = true
 button_group = ExtResource("1_j13wd")
 flat = true
+script = ExtResource("2_je3b2")
+xCoord = NodePath("../../Data display/x tile coord")
+yCoord = NodePath("../../Data display/y tile coord")
+lat = NodePath("../../Data display/latitude")
+lon = NodePath("../../Data display/longitude")
+texture = NodePath("../../TextureRect")
 
 [node name="Hide UI" type="CheckButton" parent="Hide UI Control"]
 layout_mode = 1

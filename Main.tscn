@@ -99,13 +99,47 @@ offset_right = 163.0
 offset_bottom = 23.0
 text = "Zoom level:"
 
-[node name="Label2" type="Label" parent="Actions/Control3"]
+[node name="Zoom level" type="Label" parent="Actions/Control3"]
 layout_mode = 0
 offset_left = 162.0
 offset_right = 186.0
 offset_bottom = 23.0
 text = "0"
 horizontal_alignment = 2
+
+[node name="Control5" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Actions/Control5"]
+layout_mode = 0
+offset_left = 17.0
+offset_right = 172.0
+offset_bottom = 23.0
+text = "Tiles at zoom level 0"
+
+[node name="Zoom level" type="Label" parent="Actions/Control5"]
+layout_mode = 0
+offset_left = 187.0
+offset_right = 197.0
+offset_bottom = 23.0
+text = "1"
+horizontal_alignment = 2
+
+[node name="Zoom level2" type="Label" parent="Actions/Control5"]
+layout_mode = 0
+offset_left = 244.0
+offset_right = 254.0
+offset_bottom = 23.0
+text = "2"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="Actions/Control5"]
+layout_mode = 0
+offset_left = 198.0
+offset_right = 242.0
+offset_bottom = 24.0
+button_pressed = true
 
 [node name="Zoom in" type="Button" parent="Actions"]
 layout_mode = 2
@@ -147,6 +181,15 @@ value = 1.0
 tick_count = 5
 ticks_on_borders = true
 
+[node name="TextEdit" type="TextEdit" parent="Actions"]
+custom_minimum_size = Vector2(0, 98.825)
+layout_mode = 2
+text = "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+placeholder_text = "Tile format {x} {y} {z} expected."
+wrap_mode = 1
+use_custom_word_separators = true
+custom_word_separators = "/.&"
+
 [node name="Help" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 3
@@ -155,7 +198,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -291.0
-offset_top = -241.0
+offset_top = -154.0
 offset_right = -30.0
 offset_bottom = -18.0
 grow_horizontal = 0
@@ -186,11 +229,22 @@ autowrap_mode = 2
 
 [node name="Data" type="Node" parent="."]
 
-[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("layout2", "layout4", "tileBackground")]
+[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("httpRequest", "tileFormat", "layout2", "layout4", "zoomLevel", "tileBackground")]
 script = ExtResource("2_uu6xs")
+httpRequest = NodePath("../HTTPRequest")
+tileFormat = NodePath("../../Actions/TextEdit")
 layout2 = NodePath("../../AspectRatioContainer/Layout 2 tiles")
 layout4 = NodePath("../../AspectRatioContainer/Layout 4 tiles")
+zoomLevel = NodePath("../../Actions/Control3/Zoom level")
 tileBackground = NodePath("../../AspectRatioContainer/Background Tile")
 group = ExtResource("3_r0du0")
 
+[node name="HTTPRequest" type="HTTPRequest" parent="Data"]
+
+[connection signal="toggled" from="Actions/Control5/CheckButton" to="AspectRatioContainer/Layout 2 tiles/Tile2" method="set_visible"]
+[connection signal="pressed" from="Actions/Zoom in" to="Data/Tile Manager" method="ZoomIn"]
+[connection signal="pressed" from="Actions/Zoom out" to="Data/Tile Manager" method="ZoomOut"]
+[connection signal="pressed" from="Actions/Button" to="Data/Tile Manager" method="ResetZoom"]
+[connection signal="pressed" from="Actions/Download selected" to="Data/Tile Manager" method="DownloadTile"]
+[connection signal="pressed" from="Actions/Download multiple levels" to="Data/Tile Manager" method="DownloadTileRecursive"]
 [connection signal="value_changed" from="Actions/Bulk download slider" to="Data/Tile Manager" method="SetDownloadRecZoom"]
