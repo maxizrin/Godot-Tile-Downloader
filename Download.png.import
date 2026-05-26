@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dsa05yrx1w1pm"
-path="res://.godot/imported/6.jpg-d9ee9551b798a30333e35dbe5a03038c.ctex"
+uid="uid://ccfh6xm220ace"
+path="res://.godot/imported/Download.png-3a4ebaeb081d510c32ff24ab28484d7b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Tiles/4/9/6.jpg"
-dest_files=["res://.godot/imported/6.jpg-d9ee9551b798a30333e35dbe5a03038c.ctex"]
+source_file="res://Download.png"
+dest_files=["res://.godot/imported/Download.png-3a4ebaeb081d510c32ff24ab28484d7b.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bipag6ngca50r"
-path="res://.godot/imported/0.jpg-5ad2935197e66458076565b192e2b0aa.ctex"
+uid="uid://dcm815fa50wd7"
+path="res://.godot/imported/menu.png-031e8248bd806b7df772ee8ccc4b4c5e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Tiles/0/0/0.jpg"
-dest_files=["res://.godot/imported/0.jpg-5ad2935197e66458076565b192e2b0aa.ctex"]
+source_file="res://menu.png"
+dest_files=["res://.godot/imported/menu.png-031e8248bd806b7df772ee8ccc4b4c5e.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
