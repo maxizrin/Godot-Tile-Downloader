@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 public partial class TileManager : Node
@@ -20,16 +21,12 @@ public partial class TileManager : Node
     [Export] TextureRect tileBackground;
 
     [ExportSubgroup("Connection")]
-    [Export] HttpRequest httpRequest;
     [Export] MenuButton urlPresets;
     [Export] TextEdit tileFormat;
 
     [ExportSubgroup("Labels")]
+    [Export] Label batchDownloadCount;
     [Export] Label zoomLevel;
-    [Export] Label gpsTopBound;
-    [Export] Label gpsBottomBound;
-    [Export] Label gpsLeftBound;
-    [Export] Label gpsRightBound;
     [Export] Label sizeApprox;
 
     private int downloadRecDepth = 1;
@@ -49,6 +46,7 @@ public partial class TileManager : Node
     /// Currently selected child tile.
     /// </summary>
     Tile targetTile = null;
+
 
     private bool is2TileLayout => (layout2.GetChild(1, false) as Control).Visible;
 
@@ -111,43 +109,9 @@ public partial class TileManager : Node
             {
                 tile.ButtonPressed = true;
                 targetTile = tile;
-                DownloadTile(tile.coords, currentZoom);
+                StartDownload(tile.coords, currentZoom, true);
             };
         }
-
-        httpRequest.RequestCompleted += (result, responseCode, headers, body) =>
-        {
-            requestPending = false;
-            if (targetTile == null)
-            {
-                return;
-            }
-
-            var image = new Image();
-            Error error;
-
-            var contentType = headers.FirstOrDefault(h => h.Contains("Content-Type:"))?.Split(":")[1].Trim().ToLower();
-
-            switch (contentType)
-            {
-                case "image/png":
-                    error = image.LoadPngFromBuffer(body);
-                    // Save image in folder.
-                    image.SavePng(GetFilePath(targetTile.coords, currentZoom, "png", true));
-                    break;
-                case "image/jpeg":
-                    error = image.LoadJpgFromBuffer(body);
-                    // Save image in folder.
-                    image.SaveJpg(GetFilePath(targetTile.coords, currentZoom, "jpg", true));
-                    break;
-                default:
-                    return;
-            }
-            UpdateSizeLabel();
-            var texture = ImageTexture.CreateFromImage(image);
-            // Assign to texture.
-            targetTile.SetTexture(texture);
-        };
 
         UpdateSizeLabel();
     }
@@ -187,11 +151,13 @@ public partial class TileManager : Node
         return dirSize;
     }
 
-    private string GetFilePath(Vector2I coords, int zoom, string type, bool createDir = false)
+    private string GetFilePath(Vector2I coords, int zoom, string type, bool createDir)
     {
         var dir = $"./Tiles/{zoom}/{coords.X}";
-        if (!Directory.Exists(dir) && createDir)
+        if (createDir)
+        {
             Directory.CreateDirectory(dir);
+        }
         return dir + $"/{coords.Y}." + type;
     }
 
@@ -241,13 +207,7 @@ public partial class TileManager : Node
             btns[i].ButtonPressed = false;
         }
 
-        // Update GPS coordinates.
-        var coords = GetLatLon(currentTile, currentZoom - 1);
-
-        gpsTopBound.Text = FormatGPSAngle(coords[0].Y, false);
-        gpsBottomBound.Text = FormatGPSAngle(coords[1].Y, false);
-        gpsLeftBound.Text = FormatGPSAngle(coords[0].X, true);
-        gpsRightBound.Text = FormatGPSAngle(coords[1].X, true);
+        SetDownloadRecZoom(downloadRecDepth);
     }
 
     private string FormatGPSAngle(float decimalGPS, bool isLon)
@@ -324,8 +284,7 @@ public partial class TileManager : Node
         string[] fileTypes = ["jpg", "png"];
         for (int j = 0; j < fileTypes.Length; j++)
         {
-            var filePath = GetFilePath(coords, zoom, fileTypes[j]);
-            if (File.Exists(filePath))
+            if (HasTile(coords, zoom, out var filePath))
             {
                 var cImg = Image.LoadFromFile(filePath);
                 t = ImageTexture.CreateFromImage(cImg);
@@ -337,14 +296,16 @@ public partial class TileManager : Node
     }
 
 
-    public bool HasTile(Vector2I coords, int zoom)
+    public bool HasTile(Vector2I coords, int zoom, out string path)
     {
+        path = null;
         string[] fileTypes = ["jpg", "png"];
         for (int j = 0; j < fileTypes.Length; j++)
         {
-            var filePath = GetFilePath(coords, zoom, fileTypes[j]);
+            var filePath = GetFilePath(coords, zoom, fileTypes[j], false);
             if (File.Exists(filePath))
             {
+                path = filePath;
                 return true;
             }
         }
@@ -368,43 +329,43 @@ public partial class TileManager : Node
             ];
         }
 
-        // If we have 2 tiles on zoom level 0, then the longitude is divided by half.
-        var vertTiles = (int)Math.Pow(2, zoom);
-        var horzTiles = (int)(Math.Pow(2, zoom) * (is2TileLayout ? 2 : 1));
+        // // If we have 2 tiles on zoom level 0, then the longitude is divided by half.
+        var vertTiles = (float)Math.Pow(2, zoom);
+        var horzTiles = (float)(Math.Pow(2, zoom) * (is2TileLayout ? 2 : 1));
 
         var tileSize = new Vector2(360f / horzTiles, -180f / vertTiles);
-        GD.Print("Calculating for tile: ", tileCoords, ", tile size: ", tileSize, ", ", horzTiles, ", ", vertTiles);
-        var bl = new Vector2(tileCoords.X * tileSize.X - 180, 90 + tileCoords.Y * tileSize.Y);
-        Vector2 offset = new Vector2(-180, 90);
-        return [bl, bl + tileSize];
+        // var bl = new Vector2(tileCoords.X * tileSize.X - 180, 90 + tileCoords.Y * tileSize.Y);
+        // var bl = new Vector2(tileCoords.X * tileSize.X - 180, (float)lat_deg);
+        // return [bl, bl + tileSize];
+
+        var n = 2 ^ zoom;
+        var lonMin = tileCoords.X * 360.0 / horzTiles - 180.0;
+        var lonMax = (tileCoords.X + 1) * 360.0 / horzTiles - 180.0;
+        var latMin = Math.Atan(Math.Sinh(Math.PI * (1 - 2.0 * tileCoords.Y / vertTiles)));
+        var latMax = Math.Atan(Math.Sinh(Math.PI * (1 - 2.0 * (tileCoords.Y + 1) / vertTiles)));
+        var latMaxDeg = latMin * 180.0 / Math.PI;
+        var latMinDeg = latMax * 180.0 / Math.PI;
+
+        if (tileCoords.Y == 0)
+        {
+            latMin = -90;
+        }
+        if (tileCoords.Y == vertTiles - 1)
+        {
+            latMax = 90;
+        }
+
+
+        return [
+            new Vector2((float)lonMin,(float)latMinDeg),
+            new Vector2((float)lonMax,(float)latMaxDeg)
+            ];
     }
 
 
     public void DownloadTile()
     {
-        DownloadTile(targetTile.coords, currentZoom);
-    }
-
-    private void DownloadTile(Vector2I coords, int zoom)
-    {
-        if (requestPending)
-        {
-            return;
-        }
-
-        if (HasTile(coords, zoom))
-        {
-            return;
-        }
-
-        requestPending = true;
-        var url = tileFormat.Text
-        .Replace("{x}", coords.X.ToString())
-        .Replace("{y}", coords.Y.ToString())
-        .Replace("{z}", zoom.ToString());
-        // Download the tile.
-        httpRequest.Request(url);
-        GD.Print(url);
+        StartDownload(targetTile.coords, currentZoom, true);
     }
 
     public void DownloadTileRecursive()
@@ -418,7 +379,10 @@ public partial class TileManager : Node
         {
             new List<Vector2I>(GetChildrenTilesCoords(targetTile.coords, currentZoom))
         };
+
+        // MAX_TODO: Fix this, wrong coordinates are being generated.
         
+        GD.Print(currentZoom + 1, ", ", currentZoom + downloadRecDepth + 1);
         for (int zoom = currentZoom + 1, i = 0; zoom < currentZoom + downloadRecDepth + 1; zoom++, i++)
         {
             var res = new List<Vector2I>();
@@ -430,15 +394,100 @@ public partial class TileManager : Node
             coords.Add(res);
         }
 
-        // MAX_TODO: Download.
-        var tileStrings = coords.SelectMany(zoom => zoom.Select(tile => tile.ToString()));
-        var allTiles = string.Join("; ", tileStrings);
-        GD.Print("Tiles to download, not implemented yet: ", allTiles);
+        // Only assign the first.
+        var assign = true;
+        for (int i = 0; i < coords.Count; i++)
+        {
+            var zoom = currentZoom + i;
+            for (int j = 0; j < coords[i].Count; j++)
+            {
+                StartDownload(coords[i][j], zoom, assign);
+                assign = false;
+            }
+        }
+    }
+
+    private void StartDownload(Vector2I coords, int zoom, bool assign)
+    {
+        GD.Print(coords, ", ", zoom);
+        if (HasTile(coords, zoom, out var _))
+        {
+            return;
+        }
+
+
+        var url = tileFormat.Text
+            .Replace("{x}", coords.X.ToString())
+            .Replace("{y}", coords.Y.ToString())
+            .Replace("{z}", zoom.ToString());
+
+        var request = new HttpRequest();
+        AddChild(request);
+        request.RequestCompleted += (result, responseCode, headers, body) =>
+          {
+              if (targetTile == null)
+              {
+                  return;
+              }
+
+              var image = new Image();
+
+              var contentType = headers.FirstOrDefault(h => h.Contains("Content-Type:"))?.Split(":")[1].Trim().ToLower();
+
+              switch (contentType)
+              {
+                  case "image/png":
+                      image.LoadPngFromBuffer(body);
+                      // Save image in folder.
+                      image.SavePng(GetFilePath(coords, zoom, "png", true));
+                      break;
+                  case "image/jpeg":
+                      image.LoadJpgFromBuffer(body);
+                      // Save image in folder.
+                      image.SaveJpg(GetFilePath(coords, zoom, "jpg", true));
+                      break;
+                  default:
+                      return;
+              }
+              UpdateSizeLabel();
+              var texture = ImageTexture.CreateFromImage(image);
+
+              // Assign to texture.
+              if (assign)
+                  targetTile.SetTexture(texture);
+              request.QueueFree();
+          };
+
+        if (request.IsNodeReady())
+        {
+            request.Request(url);
+        }
+        else
+        {
+            request.Ready += () => request.Request(url);
+        }
     }
 
     public void SetDownloadRecZoom(int zoom)
     {
         downloadRecDepth = zoom;
+
+        // geometric series formula for sum of powers of X^i where i = 0 to n.
+        // (X^(n+1) - 1) / (X - 1)
+        // For X = 4, the formula is: (4^(n+1) - 1) / 3.
+        // This is only true for zoom level 0, otherwise, we start from the second term.
+        // For all other zoom levels it's the same equation with n + 1, minus the first term which is always 1.
+
+        if (currentZoom == 0)
+        {
+            var count = (int)((Math.Pow(4, zoom + 1) - 1) / 3);
+            batchDownloadCount.Text = count.ToString();
+        }
+        else
+        {
+            var count = (int)((Math.Pow(4, zoom + 2) - 1) / 3) - 1; // subtract the first term which is always 1;
+            batchDownloadCount.Text = count.ToString();
+        }
     }
 
     private Vector2I[] GetChildrenTilesCoords(Vector2I parentCoord, int zoomLevel)

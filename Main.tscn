@@ -137,8 +137,16 @@ layout_mode = 2
 layout_mode = 2
 text = "Batch download zoom levels"
 
+[node name="Label2" type="Label" parent="Actions"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_constants/line_spacing = -3
+theme_override_font_sizes/font_size = 10
+text = "Downloads selected tile, and all decendets, to the selected amount of zoom levels."
+autowrap_mode = 2
+
 [node name="Control4" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
 [node name="Bulk download slider" type="HSlider" parent="Actions"]
@@ -149,8 +157,34 @@ value = 1.0
 tick_count = 5
 ticks_on_borders = true
 
+[node name="Control8" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Control9" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Actions/Control9"]
+layout_mode = 0
+offset_top = 0.5
+offset_right = 184.0
+offset_bottom = 23.5
+text = "Number of tiles chosen:"
+
+[node name="Batch download count" type="Label" parent="Actions/Control9"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -10.0
+offset_bottom = 23.0
+grow_horizontal = 0
+text = "5"
+horizontal_alignment = 2
+
 [node name="Control6" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 15)
 layout_mode = 2
 
 [node name="Control5" type="Control" parent="Actions"]
@@ -222,64 +256,18 @@ offset_left = -24.0
 offset_bottom = 23.0
 grow_horizontal = 0
 
-[node name="Map bounds labels" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-metadata/_edit_lock_ = true
-
-[node name="North" type="Label" parent="Map bounds labels"]
-layout_mode = 0
-offset_left = 229.0
-offset_top = 8.0
-offset_right = 346.0
-offset_bottom = 31.0
-text = "90°00'00.000\"N"
-
-[node name="South" type="Label" parent="Map bounds labels"]
-layout_mode = 0
-offset_left = 229.0
-offset_top = 549.0
-offset_right = 343.0
-offset_bottom = 572.0
-text = "90°00'00.000\"S"
-
-[node name="West" type="Label" parent="Map bounds labels"]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 549.0
-offset_right = 155.0
-offset_bottom = 572.0
-text = "180°00'00.000\"W"
-
-[node name="East" type="Label" parent="Map bounds labels"]
-layout_mode = 0
-offset_left = 417.0
-offset_top = 8.0
-offset_right = 540.0
-offset_bottom = 31.0
-text = "180°00'00.000\"E"
-
 [node name="Data" type="Node" parent="."]
 
-[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("layout2", "layout4", "tileBackground", "httpRequest", "urlPresets", "tileFormat", "zoomLevel", "gpsTopBound", "gpsBottomBound", "gpsLeftBound", "gpsRightBound", "sizeApprox")]
+[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("layout2", "layout4", "tileBackground", "urlPresets", "tileFormat", "batchDownloadCount", "zoomLevel", "sizeApprox")]
 script = ExtResource("2_uu6xs")
 layout2 = NodePath("../../Map/Layout 2 tiles")
 layout4 = NodePath("../../Map/Layout 4 tiles")
 group = ExtResource("3_r0du0")
 tileBackground = NodePath("../../Map/Background Tile")
-httpRequest = NodePath("../HTTPRequest")
 urlPresets = NodePath("../../Actions/MenuButton")
 tileFormat = NodePath("../../Actions/TextEdit")
+batchDownloadCount = NodePath("../../Actions/Control9/Batch download count")
 zoomLevel = NodePath("../../Actions/Control3/Zoom level")
-gpsTopBound = NodePath("../../Map bounds labels/North")
-gpsBottomBound = NodePath("../../Map bounds labels/South")
-gpsLeftBound = NodePath("../../Map bounds labels/West")
-gpsRightBound = NodePath("../../Map bounds labels/East")
 sizeApprox = NodePath("../../Actions/Control7/size label")
 
 [node name="HTTPRequest" type="HTTPRequest" parent="Data"]
