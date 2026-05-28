@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,12 +24,17 @@ public partial class TileManager : Node
     [ExportSubgroup("Connection")]
     [Export] MenuButton urlPresets;
     [Export] TextEdit tileFormat;
+    [Export] Control loadScreen;
 
     [ExportSubgroup("Labels")]
+    [Export] Label batchZoomLevel;
     [Export] Label batchDownloadCount;
     [Export] Label zoomLevel;
     [Export] Label sizeApprox;
+    [Export] Label xCoords;
+    [Export] Label yCoords;
 
+    private new List<Vector3I> scheduledDownloads = new List<Vector3I>();
     private int downloadRecDepth = 1;
     int currentZoom => tilePath.Count;
     /// <summary>
@@ -50,41 +56,45 @@ public partial class TileManager : Node
 
     private bool is2TileLayout => (layout2.GetChild(1, false) as Control).Visible;
 
+    public class JSONSourceData
+    {
+        public JSONSource[] sources { get; set; }
+    }
+    public class JSONSource
+    {
+        public string name { get; set; }
+        public string url { get; set; }
+    }
+
     public override void _Ready()
     {
         base._Ready();
 
         LoadTile(currentTile);
 
-        List<Tuple<string, string>> presets = [
-            // Google maps, road map.
-            new Tuple<string,string> ("Google - street",
-            "https://mt1.google.com/vt/x={x}&y={y}&z={z}"),
-            // Google maps, sat map.
-            new Tuple<string,string> ("Google - satellite",
-            "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"),
-            // Open street map.
-            new Tuple<string,string> ("Open street - with markings",
-            "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"),
-            new Tuple<string,string>("Open street - topography",
-            "https://opentopomap.org/{z}/{x}/{y}.png"),
-            new Tuple<string,string>("CartoDB Positron",
-            "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"),
-            new Tuple<string,string>("CartoDB Positron - no labels",
-            "https://a.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}.png"),
-            new Tuple<string,string>("CartoDB Positron - dark",
-            "https://a.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png"),
-            new Tuple<string,string>("CartoDB Positron - dark, no labels",
-            "https://a.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}.png"),
-            new Tuple<string,string>("National Satellite",
-            "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"),
-        ];
+        #region popup init
 
-        var popup = urlPresets.GetPopup();
-        // Populate the presets menu.
-        presets.ForEach(p => { popup.AddItem(p.Item1); });
-        // On menu item pressed.
-        popup.IdPressed += (id) => tileFormat.Text = presets[(int)id].Item2;
+        var sourcesPath = "./sources.json";
+        if (File.Exists(sourcesPath))
+        {
+            var sourceText = File.ReadAllText(sourcesPath);
+            var data = JsonSerializer.Deserialize<JSONSourceData>(sourceText);
+
+            var presets = data.sources.Select(source =>
+            {
+                return new Tuple<string, string>(source.name, source.url);
+            }).ToList();
+
+            var popup = urlPresets.GetPopup();
+            // Populate the presets menu.
+            presets.ForEach(p => { popup.AddItem(p.Item1); });
+            // On menu item pressed.
+            popup.IdPressed += (id) => tileFormat.Text = presets[(int)id].Item2;
+        }
+
+        #endregion
+
+        #region buttons init
 
         group.Pressed += (btn) =>
         {
@@ -112,6 +122,8 @@ public partial class TileManager : Node
                 StartDownload(tile.coords, currentZoom, true);
             };
         }
+
+        #endregion
 
         UpdateSizeLabel();
     }
@@ -200,14 +212,14 @@ public partial class TileManager : Node
 
     private void OnZoomChanged()
     {
+        xCoords.Text = currentTile.X.ToString();
+        yCoords.Text = currentTile.Y.ToString();
         targetTile = null;
         var btns = group.GetButtons();
         for (int i = 0; i < btns.Count; i++)
         {
             btns[i].ButtonPressed = false;
         }
-
-        SetDownloadRecZoom(downloadRecDepth);
     }
 
     private string FormatGPSAngle(float decimalGPS, bool isLon)
@@ -377,12 +389,9 @@ public partial class TileManager : Node
 
         var coords = new List<List<Vector2I>>
         {
-            new List<Vector2I>(GetChildrenTilesCoords(targetTile.coords, currentZoom))
+            new List<Vector2I>([targetTile.coords])
         };
 
-        // MAX_TODO: Fix this, wrong coordinates are being generated.
-        
-        GD.Print(currentZoom + 1, ", ", currentZoom + downloadRecDepth + 1);
         for (int zoom = currentZoom + 1, i = 0; zoom < currentZoom + downloadRecDepth + 1; zoom++, i++)
         {
             var res = new List<Vector2I>();
@@ -394,27 +403,35 @@ public partial class TileManager : Node
             coords.Add(res);
         }
 
-        // Only assign the first.
-        var assign = true;
         for (int i = 0; i < coords.Count; i++)
         {
             var zoom = currentZoom + i;
             for (int j = 0; j < coords[i].Count; j++)
             {
-                StartDownload(coords[i][j], zoom, assign);
-                assign = false;
+                scheduledDownloads.Add(new Vector3I(coords[i][j].X, coords[i][j].Y, zoom));
             }
         }
     }
 
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        while (scheduledDownloads.Count > 0 && GetChildCount() < 10)
+        {
+            var dl = scheduledDownloads[0];
+            scheduledDownloads.RemoveAt(0);
+            StartDownload(new Vector2I(dl.X, dl.Y), dl.Z, targetTile?.coords.X == dl.X && targetTile.coords.Y == dl.Y && currentZoom + 1 == dl.Z);
+        }
+        loadScreen.Visible = scheduledDownloads.Count > 10;
+    }
+
+
     private void StartDownload(Vector2I coords, int zoom, bool assign)
     {
-        GD.Print(coords, ", ", zoom);
         if (HasTile(coords, zoom, out var _))
         {
             return;
         }
-
 
         var url = tileFormat.Text
             .Replace("{x}", coords.X.ToString())
@@ -471,23 +488,13 @@ public partial class TileManager : Node
     public void SetDownloadRecZoom(int zoom)
     {
         downloadRecDepth = zoom;
-
+        batchZoomLevel.Text = downloadRecDepth.ToString();
+        
         // geometric series formula for sum of powers of X^i where i = 0 to n.
         // (X^(n+1) - 1) / (X - 1)
         // For X = 4, the formula is: (4^(n+1) - 1) / 3.
-        // This is only true for zoom level 0, otherwise, we start from the second term.
-        // For all other zoom levels it's the same equation with n + 1, minus the first term which is always 1.
-
-        if (currentZoom == 0)
-        {
-            var count = (int)((Math.Pow(4, zoom + 1) - 1) / 3);
-            batchDownloadCount.Text = count.ToString();
-        }
-        else
-        {
-            var count = (int)((Math.Pow(4, zoom + 2) - 1) / 3) - 1; // subtract the first term which is always 1;
-            batchDownloadCount.Text = count.ToString();
-        }
+        var count = (int)((Math.Pow(4, zoom + 1) - 1) / 3);
+        batchDownloadCount.Text = count.ToString();
     }
 
     private Vector2I[] GetChildrenTilesCoords(Vector2I parentCoord, int zoomLevel)

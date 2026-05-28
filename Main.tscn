@@ -1,9 +1,55 @@
-[gd_scene load_steps=5 format=3 uid="uid://of5xku858sxi"]
+[gd_scene load_steps=10 format=3 uid="uid://of5xku858sxi"]
 
 [ext_resource type="PackedScene" uid="uid://dtk37ndggbqoo" path="res://Tile.tscn" id="1_glv2v"]
 [ext_resource type="Texture2D" uid="uid://dcm815fa50wd7" path="res://menu.png" id="2_cm0pq"]
+[ext_resource type="Texture2D" uid="uid://842wbur1vvjf" path="res://Loading.png" id="2_fos0i"]
 [ext_resource type="Script" uid="uid://bthl73ood54xg" path="res://TileManager.cs" id="2_uu6xs"]
 [ext_resource type="ButtonGroup" uid="uid://fym4fxr2fukq" path="res://tile button group.tres" id="3_r0du0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fos0i"]
+bg_color = Color(0.280736, 0.632727, 0.87913, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="Animation" id="Animation_lgr22"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_3dxm6"]
+resource_name = "rotate_clockwise"
+length = 5.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 6.28319]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_trn2v"]
+_data = {
+&"RESET": SubResource("Animation_lgr22"),
+&"rotate_clockwise": SubResource("Animation_3dxm6")
+}
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -57,6 +103,12 @@ layout_mode = 2
 visible = false
 layout_mode = 2
 
+[node name="x tile coord" parent="Map/Layout 2 tiles/Tile2/Data display" index="1"]
+text = "1"
+
+[node name="y tile coord" parent="Map/Layout 2 tiles/Tile2/Data display" index="2"]
+text = "0"
+
 [node name="Layout 4 tiles" type="GridContainer" parent="Map"]
 visible = false
 layout_mode = 2
@@ -83,50 +135,44 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -294.0
+offset_left = -322.0
 offset_top = 28.0
 offset_right = -25.0
 offset_bottom = -19.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Control3" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Actions/Control3"]
-layout_mode = 0
-offset_left = 74.0
-offset_right = 163.0
-offset_bottom = 23.0
-text = "Zoom level:"
-
-[node name="Zoom level" type="Label" parent="Actions/Control3"]
-layout_mode = 0
-offset_left = 162.0
-offset_right = 186.0
-offset_bottom = 23.0
-text = "0"
-horizontal_alignment = 2
-
 [node name="Zoom in" type="Button" parent="Actions"]
 layout_mode = 2
+tooltip_text = "You can also double click on a tile to zoom into it."
 text = "Zoom in"
 
 [node name="Zoom out" type="Button" parent="Actions"]
 layout_mode = 2
+tooltip_text = "Go back on zoom level."
 text = "Zoom out"
 
 [node name="Button" type="Button" parent="Actions"]
 layout_mode = 2
+tooltip_text = "Set to zoom level 0."
 text = "Reset zoom"
 
+[node name="Control3" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+
+[node name="Divider" type="Panel" parent="Actions"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fos0i")
+
 [node name="Control" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
 [node name="Download selected" type="Button" parent="Actions"]
 layout_mode = 2
+tooltip_text = "Download the highlighted tile."
 text = "Download selected"
 
 [node name="Control2" type="Control" parent="Actions"]
@@ -135,6 +181,9 @@ layout_mode = 2
 
 [node name="Download multiple levels" type="Button" parent="Actions"]
 layout_mode = 2
+tooltip_text = "Start batch download.
+Downloading is limited to 10 downloads at any given moment, this is not because of bandwidth, but for preventing issues with file write operations."
+theme_override_font_sizes/font_size = 0
 text = "Batch download zoom levels"
 
 [node name="Label2" type="Label" parent="Actions"]
@@ -142,35 +191,58 @@ custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 theme_override_constants/line_spacing = -3
 theme_override_font_sizes/font_size = 10
-text = "Downloads selected tile, and all decendets, to the selected amount of zoom levels."
+text = "Batch download will download the selected tile, and all inner tiles, up to the selected zoom level."
 autowrap_mode = 2
 
-[node name="Control4" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 5)
+[node name="Control10" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 15)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Actions/Control10"]
+layout_mode = 0
+offset_top = 1.0
+offset_right = 184.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 12
+text = "Selected zoom level:"
+
+[node name="Zoom levels selected" type="Label" parent="Actions/Control10"]
+layout_mode = 1
+offset_left = 120.0
+offset_top = 1.0
+offset_right = 127.0
+offset_bottom = 22.0
+theme_override_font_sizes/font_size = 12
+text = "1"
+horizontal_alignment = 2
 
 [node name="Bulk download slider" type="HSlider" parent="Actions"]
 layout_mode = 2
+localize_numeral_system = false
+tooltip_text = "The selected zoom levels, not including the selected tile."
 min_value = 1.0
-max_value = 5.0
+max_value = 10.0
 value = 1.0
-tick_count = 5
+rounded = true
+tick_count = 10
 ticks_on_borders = true
 
 [node name="Control8" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
 [node name="Control9" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Actions/Control9"]
 layout_mode = 0
-offset_top = 0.5
+offset_top = 1.0
 offset_right = 184.0
-offset_bottom = 23.5
-text = "Number of tiles chosen:"
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 15
+text = "Number of tiles in batch:"
 
 [node name="Batch download count" type="Label" parent="Actions/Control9"]
 layout_mode = 1
@@ -180,53 +252,152 @@ anchor_right = 1.0
 offset_left = -10.0
 offset_bottom = 23.0
 grow_horizontal = 0
+theme_override_font_sizes/font_size = 15
 text = "5"
 horizontal_alignment = 2
 
-[node name="Control6" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 15)
+[node name="Divider3" type="Panel" parent="Actions"]
+custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fos0i")
+
+[node name="Control7" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+tooltip_text = "Approximate size of the tiles downloaded so far.
+Approximation does not account for file padding, so the real size is slightly larger."
+
+[node name="Label" type="Label" parent="Actions/Control7"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Approximate size of the tiles downloaded so far.
+Approximation does not account for file padding, so the real size is slightly larger."
+mouse_filter = 0
+text = "Tile size (aprox.):"
+vertical_alignment = 1
+
+[node name="size label" type="Label" parent="Actions/Control7"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -22.0
+offset_right = -12.0
+grow_horizontal = 0
+grow_vertical = 2
+vertical_alignment = 1
+
+[node name="Divider2" type="Panel" parent="Actions"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fos0i")
+
+[node name="Control6" type="Control" parent="Actions"]
+layout_mode = 2
+
+[node name="Loading overlay" type="Control" parent="Actions/Control6"]
+visible = false
+custom_minimum_size = Vector2(0, -5)
+layout_mode = 2
+anchors_preset = 0
+offset_right = 269.0
+
+[node name="Panel" type="Panel" parent="Actions/Control6/Loading overlay"]
+z_index = 1
+custom_minimum_size = Vector2(0, 148.31)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -9.0
+offset_top = -178.0
+offset_right = 9.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_force_pass_scroll_events = false
+mouse_default_cursor_shape = 5
+
+[node name="TextureRect" type="TextureRect" parent="Actions/Control6/Loading overlay"]
+z_index = 2
+texture_filter = 6
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.5
+offset_top = -128.5
+offset_right = 25.5
+offset_bottom = -78.5
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(25, 25)
+mouse_filter = 2
+texture = ExtResource("2_fos0i")
+expand_mode = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Actions/Control6/Loading overlay/TextureRect"]
+libraries = {
+&"": SubResource("AnimationLibrary_trn2v")
+}
+autoplay = "rotate_clockwise"
 
 [node name="Control5" type="Control" parent="Actions"]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
+tooltip_text = "Some map tile providers have a slightly different schema, having 2 tiles at zoom level 0.
+Most use only one.
+If you're not sure, download the left (0,0) tile, if it's only half the planet, turn this on."
 
 [node name="Label" type="Label" parent="Actions/Control5"]
-layout_mode = 0
-offset_left = 17.0
-offset_right = 172.0
+layout_mode = 1
+offset_right = 155.0
 offset_bottom = 23.0
-text = "Tiles at zoom level 0"
+text = "Tiles at zoom level 0:"
 
 [node name="Zoom level" type="Label" parent="Actions/Control5"]
 layout_mode = 0
-offset_left = 187.0
-offset_right = 197.0
+offset_left = 214.0
+offset_right = 224.0
 offset_bottom = 23.0
 text = "1"
 horizontal_alignment = 2
 
 [node name="Zoom level2" type="Label" parent="Actions/Control5"]
 layout_mode = 0
-offset_left = 244.0
-offset_right = 254.0
+offset_left = 271.0
+offset_right = 281.0
 offset_bottom = 23.0
 text = "2"
 horizontal_alignment = 2
 
 [node name="CheckButton" type="CheckButton" parent="Actions/Control5"]
 layout_mode = 0
-offset_left = 198.0
-offset_right = 242.0
+offset_left = 225.0
+offset_right = 269.0
 offset_bottom = 24.0
 
 [node name="MenuButton" type="MenuButton" parent="Actions"]
 layout_mode = 2
+tooltip_text = "{x} {y} {z} in the URL are place holders for tile X coordinate, tile Y coordinate, and Zoom level, respectively."
 text = "URL Presets"
 icon = ExtResource("2_cm0pq")
 flat = false
 alignment = 0
 expand_icon = true
+
+[node name="Control4" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
 
 [node name="TextEdit" type="TextEdit" parent="Actions"]
 custom_minimum_size = Vector2(0, 98.825)
@@ -237,28 +408,78 @@ wrap_mode = 1
 use_custom_word_separators = true
 custom_word_separators = "/.&"
 
-[node name="Control7" type="Control" parent="Actions"]
-custom_minimum_size = Vector2(0, 30)
+[node name="Control11" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Actions/Control7"]
+[node name="Current tile coordinates" type="Control" parent="."]
 layout_mode = 1
-offset_right = 205.0
-offset_bottom = 23.0
-text = "Tile size (aprox.):"
-
-[node name="size label" type="Label" parent="Actions/Control7"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
+anchors_preset = 15
 anchor_right = 1.0
-offset_left = -24.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+metadata/_edit_lock_ = true
+
+[node name="Label" type="Label" parent="Current tile coordinates"]
+layout_mode = 1
+offset_left = 234.0
+offset_top = 12.0
+offset_right = 249.0
+offset_bottom = 35.0
+text = "X:"
+
+[node name="X coords" type="Label" parent="Current tile coordinates"]
+layout_mode = 1
+offset_left = 251.0
+offset_top = 12.0
+offset_right = 288.0
+offset_bottom = 35.0
+text = "-1"
+
+[node name="Label2" type="Label" parent="Current tile coordinates"]
+layout_mode = 1
+offset_left = 304.0
+offset_top = 12.0
+offset_right = 319.0
+offset_bottom = 35.0
+text = "Y:"
+
+[node name="Y coords" type="Label" parent="Current tile coordinates"]
+layout_mode = 1
+offset_left = 321.0
+offset_top = 12.0
+offset_right = 358.0
+offset_bottom = 35.0
+text = "-1"
+
+[node name="Control3" type="Control" parent="Current tile coordinates"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+anchors_preset = 0
+offset_left = 29.0
+offset_top = 12.0
+offset_right = 225.0
+offset_bottom = 37.0
+
+[node name="Label" type="Label" parent="Current tile coordinates/Control3"]
+layout_mode = 1
+offset_right = 89.0
 offset_bottom = 23.0
-grow_horizontal = 0
+text = "Zoom level:"
+
+[node name="Zoom level" type="Label" parent="Current tile coordinates/Control3"]
+layout_mode = 1
+offset_left = 99.0
+offset_right = 127.0
+offset_bottom = 23.0
+text = "0"
+horizontal_alignment = 2
 
 [node name="Data" type="Node" parent="."]
 
-[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("layout2", "layout4", "tileBackground", "urlPresets", "tileFormat", "batchDownloadCount", "zoomLevel", "sizeApprox")]
+[node name="Tile Manager" type="Node" parent="Data" node_paths=PackedStringArray("layout2", "layout4", "tileBackground", "urlPresets", "tileFormat", "loadScreen", "batchZoomLevel", "batchDownloadCount", "zoomLevel", "sizeApprox", "xCoords", "yCoords")]
 script = ExtResource("2_uu6xs")
 layout2 = NodePath("../../Map/Layout 2 tiles")
 layout4 = NodePath("../../Map/Layout 4 tiles")
@@ -266,11 +487,29 @@ group = ExtResource("3_r0du0")
 tileBackground = NodePath("../../Map/Background Tile")
 urlPresets = NodePath("../../Actions/MenuButton")
 tileFormat = NodePath("../../Actions/TextEdit")
+loadScreen = NodePath("../../Actions/Control6/Loading overlay")
+batchZoomLevel = NodePath("../../Actions/Control10/Zoom levels selected")
 batchDownloadCount = NodePath("../../Actions/Control9/Batch download count")
-zoomLevel = NodePath("../../Actions/Control3/Zoom level")
+zoomLevel = NodePath("../../Current tile coordinates/Control3/Zoom level")
 sizeApprox = NodePath("../../Actions/Control7/size label")
+xCoords = NodePath("../../Current tile coordinates/X coords")
+yCoords = NodePath("../../Current tile coordinates/Y coords")
 
 [node name="HTTPRequest" type="HTTPRequest" parent="Data"]
+
+[node name="VERSION" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 4.235
+offset_top = -17.445
+offset_right = 109.235
+offset_bottom = -3.44501
+grow_vertical = 0
+theme_override_font_sizes/font_size = 10
+text = "Version 1.0.1 - 2026.05.28"
+vertical_alignment = 2
 
 [connection signal="pressed" from="Actions/Zoom in" to="Data/Tile Manager" method="ZoomIn"]
 [connection signal="pressed" from="Actions/Zoom out" to="Data/Tile Manager" method="ZoomOut"]
@@ -279,3 +518,5 @@ sizeApprox = NodePath("../../Actions/Control7/size label")
 [connection signal="pressed" from="Actions/Download multiple levels" to="Data/Tile Manager" method="DownloadTileRecursive"]
 [connection signal="value_changed" from="Actions/Bulk download slider" to="Data/Tile Manager" method="SetDownloadRecZoom"]
 [connection signal="toggled" from="Actions/Control5/CheckButton" to="Map/Layout 2 tiles/Tile2" method="set_visible"]
+
+[editable path="Map/Layout 2 tiles/Tile2"]
